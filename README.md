@@ -125,10 +125,12 @@ docker-compose logs inventory-service
 ### Product Service (Puerto configurable, por defecto 8081)
 - **Health Check**: `http://localhost:${PRODUCT_SERVICE_PORT}/actuator/health`
 - **API Base**: `http://localhost:${PRODUCT_SERVICE_PORT}/api/v1`
+- **Documentación Swagger**: [http://localhost:8081/swagger-ui/index.html#/](http://localhost:8081/swagger-ui/index.html#/)
 
 ### Inventory Service (Puerto configurable, por defecto 8082)
 - **Health Check**: `http://localhost:${INVENTORY_SERVICE_PORT}/actuator/health`
 - **API Base**: `http://localhost:${INVENTORY_SERVICE_PORT}/api/v1`
+- **Documentación Swagger**: [http://localhost:8082/swagger-ui/index.html#/](http://localhost:8082/swagger-ui/index.html#/)
 
 > **Nota**: Los puertos se configuran en el archivo `.env`. Por defecto son 8081 y 8082.
 
