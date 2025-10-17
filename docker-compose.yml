@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Product Service
+  product-db:
+    image: postgres:15-alpine
+    container_name: product-db
+    environment:
+      POSTGRES_DB: ${PRODUCT_DB_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${PRODUCT_DB_PORT}:5432"
+    volumes:
+      - product_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${PRODUCT_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database for Inventory Service
+  inventory-db:
+    image: postgres:15-alpine
+    container_name: inventory-db
+    environment:
+      POSTGRES_DB: ${INVENTORY_DB_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${INVENTORY_DB_PORT}:5432"
+    volumes:
+      - inventory_db_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${INVENTORY_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Product Service
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    container_name: product-service
+    environment:
+      # Server configuration
+      - port=${PRODUCT_SERVICE_PORT}
+      
+      # Database configuration
+      - db_url=jdbc:postgresql://product-db:5432/${PRODUCT_DB_NAME}
+      - db_user=${POSTGRES_USER}
+      - db_pass=${POSTGRES_PASSWORD}
+      
+      # API configuration
+      - api_key=${PRODUCT_API_KEY}
+    ports:
+      - "${PRODUCT_SERVICE_PORT}:${PRODUCT_SERVICE_PORT}"
+    depends_on:
+      product-db:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PRODUCT_SERVICE_PORT}/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Inventory Service
+  inventory-service:
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile
+    container_name: inventory-service
+    environment:
+      # Server configuration
+      - port=${INVENTORY_SERVICE_PORT}
+      
+      # Database configuration
+      - db_url=jdbc:postgresql://inventory-db:5432/${INVENTORY_DB_NAME}
+      - db_user=${POSTGRES_USER}
+      - db_pass=${POSTGRES_PASSWORD}
+      
+      # API configuration
+      - api_key=${INVENTORY_API_KEY}
+      
+      # Product service communication
+      - url_service=http://product-service:${PRODUCT_SERVICE_PORT}/api/v1
+      - api_key_product=${PRODUCT_API_KEY}
+    ports:
+      - "${INVENTORY_SERVICE_PORT}:${INVENTORY_SERVICE_PORT}"
+    depends_on:
+      inventory-db:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${INVENTORY_SERVICE_PORT}/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+volumes:
+  product_db_data:
+    driver: local
+  inventory_db_data:
+    driver: local
+
+networks:
+  microservices-network:
+    driver: bridge

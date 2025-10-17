@@ -1,0 +1,45 @@
+server:
+  port: ${port}
+
+spring:
+  application:
+    name: inventory-service
+  datasource:
+    url: ${db_url}
+    username: ${db_user}
+    password: ${db_pass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: true
+    show-sql: true
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 2000
+            readTimeout: 3000
+            loggerLevel: basic
+            retry-period: 100
+            retry-max-period: 1000
+            retry-max-attempts: 3
+
+logging:
+  level:
+    org.springframework.jdbc: DEBUG
+    org.hibernate: INFO
+
+api:
+  key: ${api_key}
+
+products:
+  service:
+    url: ${url_service}
+  api:
+    key: ${api_key_product}
