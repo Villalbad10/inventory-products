@@ -82,7 +82,7 @@ Puedes cambiar:
 ### 1. Clonar el Repositorio
 
 ```bash
-git clone <tu-repositorio>
+git clone https://github.com/Villalbad10/inventory-products
 cd inventory-products
 ```
 
@@ -337,7 +337,7 @@ Para usuarios que quieren ejecutar el sistema inmediatamente:
 
 ```bash
 # 1. Clonar el repositorio
-git clone <tu-repositorio>
+git clone https://github.com/Villalbad10/inventory-products
 cd inventory-products
 
 # 2. Configurar variables de entorno
